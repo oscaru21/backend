@@ -1,32 +1,21 @@
 import os
-import boto3
 from chalice import Chalice
+from chalice import CognitoUserPoolAuthorizer
+
+from chalicelib.storage_service import StorageService
+
+authorizer = CognitoUserPoolAuthorizer(
+    'MyPool', provider_arns=['arn:aws:cognito-idp:us-east-1:381491943332:userpool/us-east-1_qQ9hwQlhe'])
 
 
 app = Chalice(app_name='transcriber')
-dynamodb = boto3.resource('dynamodb')
-dynamodb_table = dynamodb.Table(os.environ.get('APP_TABLE_NAME', ''))
 
+bucket_name = os.environ.get('AUDIO_BUCKET_NAME', '')
+storage_service = StorageService(bucket_name)
 
-@app.route('/users', methods=['POST'])
-def create_user():
-    request = app.current_request.json_body
-    item = {
-        'PK': 'User#%s' % request['username'],
-        'SK': 'Profile#%s' % request['username'],
-    }
-    item.update(request)
-    dynamodb_table.put_item(Item=item)
-    return {}
-
-
-@app.route('/users/{username}', methods=['GET'])
-def get_user(username):
-    key = {
-        'PK': 'User#%s' % username,
-        'SK': 'Profile#%s' % username,
-    }
-    item = dynamodb_table.get_item(Key=key)['Item']
-    del item['PK']
-    del item['SK']
-    return item
+# get request to get presigned url, should authenticate user with cognito and extract the user id
+@app.route('/presigned-url', methods=['GET'], authorizer=authorizer, cors = True)
+def get_presigned_url():
+    #get user id from cognito
+    user_id = app.current_request.context['authorizer']['claims']['sub']
+    return storage_service.get_presigned_url(user_id)
