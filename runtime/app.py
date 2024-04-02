@@ -18,4 +18,4 @@ storage_service = StorageService(bucket_name)
 def get_presigned_url():
     #get user id from cognito
     user_id = app.current_request.context['authorizer']['claims']['sub']
-    return storage_service.get_presigned_url(user_id)
+    return storage_service.get_upload_url(user_id)

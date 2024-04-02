@@ -3,7 +3,7 @@ import os
 from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_s3 as s3
 
-from aws_cdk import core as cdk
+import aws_cdk as cdk
 
 from chalice.cdk import Chalice
 
