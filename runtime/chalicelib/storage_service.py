@@ -13,16 +13,17 @@ class StorageService:
         return self.bucket_name
     
     def get_upload_url(self, prefix: str):
-        """returns a presigned url for uploading a file"""
+        """returns a presigned url for uploading an audio file"""
         # generate uuid for file name
-        key = prefix + str(uuid.uuid4())
+        key = prefix + "/" + str(uuid.uuid4())
         try:
             url = self.client.generate_presigned_url(ClientMethod='put_object',
                 Params = {
                     'Bucket': self.bucket_name,
-                    'Key': key
+                    'Key': key,
+                    'ContentType': 'audio/mpeg'
                 },
-                ExpiresIn=120
+                ExpiresIn=300
             )
         except ClientError as e:
             logging.error(e)
