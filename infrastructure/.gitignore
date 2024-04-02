@@ -13,3 +13,5 @@ cdk-*-debug.json
 *.bak
 *.tmp
 *.log
+
+stacks/__pycache__

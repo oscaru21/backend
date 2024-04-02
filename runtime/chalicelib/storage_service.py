@@ -1,5 +1,7 @@
 import boto3
 import uuid
+import logging
+from botocore.exceptions import ClientError
 
 class StorageService:
     def __init__(self, storage_location):
@@ -13,12 +15,17 @@ class StorageService:
     def get_upload_url(self, prefix: str):
         """returns a presigned url for uploading a file"""
         # generate uuid for file name
-        key = prefix + uuid.uuid4()
-        url = self.client.generate_presigned_url(
-            ClientMethod = 'put_object',
-            Params = {
-                'Bucket': self.bucket_name,
-                'Key': key
-            }
-        )
+        key = prefix + str(uuid.uuid4())
+        try:
+            url = self.client.generate_presigned_url(ClientMethod='put_object',
+                Params = {
+                    'Bucket': self.bucket_name,
+                    'Key': key
+                },
+                ExpiresIn=120
+            )
+        except ClientError as e:
+            logging.error(e)
+            url = "Something bad happen using the client"
+
         return { 'url': url }
