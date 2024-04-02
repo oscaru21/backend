@@ -37,9 +37,19 @@ class ChaliceApp(cdk.Stack):
     def _create_audio_bucket(self):
         bucket = s3.Bucket(
             self, 'Bucket',
-            removal_policy=cdk.RemovalPolicy.DESTROY
+            removal_policy=cdk.RemovalPolicy.DESTROY,
+            cors=[
+                {
+                    "allowedMethods": [
+                        s3.HttpMethods.PUT,
+                    ],
+                    "allowedOrigins": ["*"],
+                    "allowedHeaders": ["*"],
+                }
+            ]
         )
         cdk.CfnOutput(self, 'BucketName', value=bucket.bucket_name)
+
         return bucket
 
     def _create_ddb_table(self):
