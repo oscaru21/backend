@@ -1,0 +1,15 @@
+# CDK specific ignores
+cdk.out/
+chalice.out/
+cdk.context.json
+cdk-*-debug.json
+
+# IDE/editor specific ignores
+.vscode/
+.idea/
+
+# Miscellaneous
+.DS_Store
+*.bak
+*.tmp
+*.log
