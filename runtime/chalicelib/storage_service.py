@@ -15,7 +15,8 @@ class StorageService:
     def get_upload_url(self, prefix: str):
         """returns a presigned url for uploading an audio file"""
         # generate uuid for file name
-        key = prefix + "/" + str(uuid.uuid4()) + ".mp3"
+        job_id = str(uuid.uuid4())
+        key = prefix + "/" + job_id + ".mp3"
         try:
             url = self.client.generate_presigned_url(ClientMethod='put_object',
                 Params = {
@@ -29,4 +30,4 @@ class StorageService:
             logging.error(e)
             url = "Something bad happen using the client"
 
-        return { 'url': url }
+        return { 'url': url, 'job': job_id }
