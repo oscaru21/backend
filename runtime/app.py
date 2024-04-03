@@ -20,11 +20,21 @@ database_service = DatabaseService(database_table)
 
 
 # get request to get presigned url, should authenticate user with cognito and extract the user id
-@app.route('/presigned-url', methods=['GET'], authorizer=authorizer, cors = True)
+@app.route('/presigned-url', methods=['POST'], authorizer=authorizer, cors = True)
 def get_presigned_url():
+    #get request parameters
+    body = app.current_request.json_body
+    to_language = body['to_language'] 
+    name = body['name']
+
     #get user id from cognito
     user_id = app.current_request.context['authorizer']['claims']['sub']
-    return storage_service.get_upload_url(user_id)
+    #generate presigned url
+    url = storage_service.get_upload_url(user_id)
+
+    # create new record in dynamo db
+    database_service.create_new_job(user_id, url.get('job'), name, to_language=to_language)
+    return url
 
 @app.on_sqs_message(queue_arn=os.environ.get('SQS_GENERIC', ''),batch_size=1)
 def handle_sqs_message(event):
@@ -36,7 +46,7 @@ def handle_sqs_message(event):
         key = key.split('.')[0]
         user_id, job_id = key.split('/')
         # create new record in dynamo db
-        database_service.create_new_job(user_id, job_id)
+        database_service.upload_status(user_id, job_id, 'uploaded')
 
 @app.route('/meetings', methods = ['GET'], authorizer=authorizer, cors = True)
 def get_meetings():
