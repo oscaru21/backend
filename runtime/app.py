@@ -5,6 +5,8 @@ from chalice import CognitoUserPoolAuthorizer
 from chalicelib.storage_service import StorageService
 from chalicelib.database_service import DatabaseService
 from chalicelib.transcription_service import TranscriptionService
+from chalicelib.translation_service import TranslationService
+
 import json
 
 app = Chalice(app_name='transcriber')
@@ -20,7 +22,7 @@ database_table = os.environ.get('APP_TABLE_NAME', '')
 database_service = DatabaseService(database_table)
 
 transcription_service = TranscriptionService(storage_service)
-
+translation_service = TranslationService()
 
 # get request to get presigned url, should authenticate user with cognito and extract the user id
 @app.route('/presigned-url', methods=['POST'], authorizer=authorizer, cors = True)
@@ -68,5 +70,21 @@ def get_meetings():
     user_id = app.current_request.context['authorizer']['claims']['sub']
     transcriptions = database_service.get_all_items_by_username(user_id)
     return {'transcriptions': transcriptions}
+
+@app.route('/translate/{job_id}', methods = ['GET'], authorizer=authorizer, cors = True)
+def translate(job_id):
+    #get user id from cognito
+    user_id = app.current_request.context['authorizer']['claims']['sub']
+    #get transcript from dynamo db
+    item = database_service.get_item(user_id, job_id)
+    transcript = item['transcript']['S']
+    language = item['to_language']['S']
+
+    #translate transcript
+    translation = translation_service.translate_text(transcript, target_language=language)['translatedText']
+    #save translation in dynamo db
+    database_service.upload_translation(user_id, job_id, translation)
+    return {'translation': translation}
+
 
     

@@ -40,7 +40,7 @@ class ChaliceApp(cdk.Stack):
         #grant default role permissions for transcribe service
         self.chalice.get_role('DefaultRole').add_to_principal_policy(cdk.aws_iam.PolicyStatement(
             effect=cdk.aws_iam.Effect.ALLOW,
-            actions=["transcribe:*", "translate:*"],
+            actions=["transcribe:*", "translate:*", "comprehend:*"],
             resources=["*"],
         ))
 

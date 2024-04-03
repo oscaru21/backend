@@ -80,11 +80,35 @@ class DatabaseService:
             return False
         return True
     
-    # def put_item(self, item):
-    #     response = self.table_name.put_item(Item=item)
-    #     print("Inserting element:::::",response)
-    #     return response
+    def upload_translation(self, primary_key, sort_key, translation):
+        try:
+            self.client.update_item(
+                TableName=self.table_name,
+                Key={
+                    'username': {'S': primary_key},
+                    'id': {'S': sort_key},
+                },
+                UpdateExpression="set translation_text = :s",
+                ExpressionAttributeValues={
+                    ':s': {'S': translation}
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        except ClientError as e:
+            logging.error(e)
+            return False
+        return True
     
-    # def get_item(self, keys):
-    #     response = self.table_name.get_item(keys)
-    #     return response
+    def get_item(self, primary_key, sort_key):
+        try:
+            response = self.client.get_item(
+                TableName=self.table_name,
+                Key={
+                    'username': {'S': primary_key},
+                    'id': {'S': sort_key},
+                }
+            )
+        except ClientError as e:
+            logging.error(e)
+            return None
+        return response['Item']
