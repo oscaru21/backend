@@ -61,6 +61,25 @@ class DatabaseService:
             return False
         return True
     
+    def upload_transcript(self, primary_key, sort_key, transcript):
+        try:
+            self.client.update_item(
+                TableName=self.table_name,
+                Key={
+                    'username': {'S': primary_key},
+                    'id': {'S': sort_key},
+                },
+                UpdateExpression="set transcript = :s",
+                ExpressionAttributeValues={
+                    ':s': {'S': transcript}
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        except ClientError as e:
+            logging.error(e)
+            return False
+        return True
+    
     # def put_item(self, item):
     #     response = self.table_name.put_item(Item=item)
     #     print("Inserting element:::::",response)

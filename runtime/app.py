@@ -4,6 +4,7 @@ from chalice import CognitoUserPoolAuthorizer
 
 from chalicelib.storage_service import StorageService
 from chalicelib.database_service import DatabaseService
+from chalicelib.transcription_service import TranscriptionService
 import json
 
 app = Chalice(app_name='transcriber')
@@ -17,6 +18,8 @@ storage_service = StorageService(bucket_name)
 
 database_table = os.environ.get('APP_TABLE_NAME', '')
 database_service = DatabaseService(database_table)
+
+transcription_service = TranscriptionService(storage_service)
 
 
 # get request to get presigned url, should authenticate user with cognito and extract the user id
@@ -42,11 +45,21 @@ def handle_sqs_message(event):
         # extract object key from record
         body = json.loads(record.body)
         key = body['Records'][0]['s3']['object']['key']
+        
         #remove file extension
-        key = key.split('.')[0]
-        user_id, job_id = key.split('/')
-        # create new record in dynamo db
-        database_service.upload_status(user_id, job_id, 'uploaded')
+        file_name, file_extension = key.split('.')
+        if file_extension == 'mp3':
+            user_id, job_id = file_name.split('/')
+            
+            # create new record in dynamo db
+            print("updating status")
+            database_service.upload_status(user_id, job_id, 'uploaded')
+
+            # start transcription job
+            print("starting transcription job")
+            transcript = transcription_service.transcribe_audio(key, 'en')
+
+            database_service.upload_transcript(user_id, job_id, transcript)
 
 @app.route('/meetings', methods = ['GET'], authorizer=authorizer, cors = True)
 def get_meetings():

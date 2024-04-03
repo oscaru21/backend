@@ -31,3 +31,8 @@ class StorageService:
             url = "Something bad happen using the client"
 
         return { 'url': url, 'job': job_id }
+    
+    def get_file(self, file_name):
+        response = self.client.get_object(Bucket = self.bucket_name, Key = file_name)
+
+        return response['Body'].read().decode('utf-8')
