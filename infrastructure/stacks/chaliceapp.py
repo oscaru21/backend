@@ -37,6 +37,12 @@ class ChaliceApp(cdk.Stack):
             self.chalice.get_role('DefaultRole')
         )
         self.audio_bucket.add_event_notification(s3.EventType.OBJECT_CREATED_PUT, aws_s3_noti.SqsDestination(self.sqs_generic))
+        #grant default role permissions for transcribe service
+        self.chalice.get_role('DefaultRole').add_to_principal_policy(cdk.aws_iam.PolicyStatement(
+            effect=cdk.aws_iam.Effect.ALLOW,
+            actions=["transcribe:*", "translate:*"],
+            resources=["*"],
+        ))
 
     def _create_sqs(self):
         queue = sqs.Queue(self, "sqs", visibility_timeout=cdk.Duration.seconds(300))
