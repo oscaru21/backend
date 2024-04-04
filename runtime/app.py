@@ -45,11 +45,15 @@ def get_presigned_url():
 def handle_sqs_message(event):
     for record in event:
         # extract object key from record
+        print("handling sqs message")
+        print(record.body)
         body = json.loads(record.body)
         key = body['Records'][0]['s3']['object']['key']
         
         #remove file extension
         file_name, file_extension = key.split('.')
+        print(file_name)
+        print(file_extension)
         if file_extension == 'mp3':
             user_id, job_id = file_name.split('/')
             

@@ -36,7 +36,7 @@ class ChaliceApp(cdk.Stack):
         self.audio_bucket.grant_read_write(
             self.chalice.get_role('DefaultRole')
         )
-        self.audio_bucket.add_event_notification(s3.EventType.OBJECT_CREATED_PUT, aws_s3_noti.SqsDestination(self.sqs_generic))
+        self.audio_bucket.add_event_notification(s3.EventType.OBJECT_CREATED, aws_s3_noti.SqsDestination(self.sqs_generic))
         #grant default role permissions for transcribe service
         self.chalice.get_role('DefaultRole').add_to_principal_policy(cdk.aws_iam.PolicyStatement(
             effect=cdk.aws_iam.Effect.ALLOW,
@@ -57,6 +57,7 @@ class ChaliceApp(cdk.Stack):
                 {
                     "allowedMethods": [
                         s3.HttpMethods.PUT,
+                        s3.HttpMethods.POST,
                     ],
                     "allowedOrigins": ["*"],
                     "allowedHeaders": ["*"],
