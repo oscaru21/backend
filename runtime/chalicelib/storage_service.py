@@ -18,14 +18,11 @@ class StorageService:
         job_id = str(uuid.uuid4())
         key = prefix + "/" + job_id + ".mp3"
         try:
-            url = self.client.generate_presigned_url(ClientMethod='put_object',
-                Params = {
-                    'Bucket': self.bucket_name,
-                    'Key': key,
-                    'ContentType': 'audio/mpeg'
-                },
-                ExpiresIn=300
-            )
+            #generate presigned post url that accepts all types of audio files with a size lower than 500kb
+            url = self.client.generate_presigned_post(Bucket = self.bucket_name, Key = key, Conditions = [
+                ["content-length-range", 0, 524288]
+            ])
+                
         except ClientError as e:
             logging.error(e)
             url = "Something bad happen using the client"
