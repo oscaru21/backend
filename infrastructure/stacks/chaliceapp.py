@@ -19,6 +19,7 @@ class ChaliceApp(cdk.Stack):
         self.sqs_generic = self._create_sqs()
         self.dynamodb_table = self._create_ddb_table()
         self.audio_bucket = self._create_audio_bucket()
+        # TODO:intanciasr table con metodo
 
         self.chalice = Chalice(
             self, 'ChaliceApp', source_dir=RUNTIME_SOURCE_DIR,
@@ -27,6 +28,7 @@ class ChaliceApp(cdk.Stack):
                     'APP_TABLE_NAME': self.dynamodb_table.table_name,
                     'AUDIO_BUCKET_NAME': self.audio_bucket.bucket_name,
                     "SQS_GENERIC" : self.sqs_generic.queue_arn,
+                    # crear env variable para el nombre de la table
                 }
             }
         )
@@ -36,8 +38,9 @@ class ChaliceApp(cdk.Stack):
         self.audio_bucket.grant_read_write(
             self.chalice.get_role('DefaultRole')
         )
+        #TODO:dar permiso a chalice app para acceder a la tabla
         self.audio_bucket.add_event_notification(s3.EventType.OBJECT_CREATED, aws_s3_noti.SqsDestination(self.sqs_generic))
-        #grant default role permissions for transcribe service
+        #TODO:grant default role permissions for transcribe service
         self.chalice.get_role('DefaultRole').add_to_principal_policy(cdk.aws_iam.PolicyStatement(
             effect=cdk.aws_iam.Effect.ALLOW,
             actions=["transcribe:*", "translate:*", "comprehend:*"],
@@ -83,3 +86,5 @@ class ChaliceApp(cdk.Stack):
         cdk.CfnOutput(self, 'AppTableName',
                       value=dynamodb_table.table_name)
         return dynamodb_table
+    
+    # TODO:crear nuevo metodo para definir estructura de table
