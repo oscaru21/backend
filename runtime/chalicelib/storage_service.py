@@ -33,3 +33,7 @@ class StorageService:
         response = self.client.get_object(Bucket = self.bucket_name, Key = file_name)
 
         return response['Body'].read().decode('utf-8')
+    
+    def delete_file(self, file_name):
+        self.client.delete_object(Bucket = self.bucket_name, Key = file_name)
+        
